@@ -9,37 +9,62 @@ pygame.font.init()
 move = [False, False, False, False]
 rotate = [100]
 
+score = 0
+
 screen = pygame.display.set_mode((600, 400))
 pygame.display.set_caption("PYRKAN")
 
-move_step = 4
+move_step = 8
 
-box = pygame.Rect((0,0),(400,200))
-surface = pygame.Surface((590,350))
-bottom_surface = pygame.Surface((600, 50))
+game_surface = pygame.Surface((590,380))
+game_surface_rect = game_surface.get_rect()
+game_surface_rect.top = 20
+game_surface_rect.left = 5
+score_surface = pygame.Surface((600, 20))
+score_surface_rect = game_surface.get_rect()
+score_surface_rect.top = 0
+score_surface_rect.left = 0
+player_surface = pygame.Surface((590, 20))
+player_surface_rect = player_surface.get_rect()
+player_surface_rect.top = 360
+player_surface_rect.left = 5
 player_up_event = pygame.event.Event(pygame.USEREVENT,{'code': 'player.up'})
 
-#star = pygame.image.load(os.path.join('assets','star.png'))
-canvas = pygame.image.load(os.path.join('assets','canvas.png'))
-
 font = pygame.font.Font(None, 12)
-text = font.render('PLAYER UP', 1, (100,255,100))
-textpos = text.get_rect()
-textpos.centerx = surface.get_rect().centerx
+
+player = pygame.sprite.Sprite()
+player.image = pygame.Surface((48, 12))
+player.rect = pygame.Rect((player_surface_rect.width / 2) - 24, 0, 48, 12)
+player.image.fill(pygame.Color(200,175,150))
+player_group = pygame.sprite.Group()
+player_group.add(player)
+
+ball = pygame.sprite.Sprite()
+ball.image = pygame.Surface((15,15))
+ball.rect = player.image.get_rect()
 
 def make_bricks(rows = 5):
-    bricks = []
+    bricks = pygame.sprite.Group()
     for row in range(rows):
         for col in range(23):
-            brick = pygame.Surface((21,9))
-            brick.fill(pygame.Color(random.randrange(255),random.randrange(255),random.randrange(255)))
-            bricks.append((brick, ((4 * col) + col * 21, 13 + row * 9)))
+            brick = pygame.sprite.Sprite()
+            brick.image = pygame.Surface((21,9))
+            brick.image.fill(pygame.Color(random.randrange(255),random.randrange(255),random.randrange(255)))
+            brick.rect = pygame.Rect(((4 * col) + col * 21, 13 + row * 9), (21,9))
+            bricks.add(brick)
     return bricks
 
 def draw_sky(star):
     for row in range(11):
         for col in range(19):
             star_animation(star, (col * star.get_rect().width, row * star.get_rect().height))
+
+def show_score():
+    text = font.render('SCORE: {0}'.format(score), 1, (100,255,100))
+    textpos = text.get_rect()
+    textpos.top = 5
+    textpos.left = 15
+    score_surface.blit(text, textpos)
 
 def make_a_star(size):
     star = pygame.Surface((size, size))
@@ -81,30 +106,39 @@ def star_animation(star, place):
     img = pygame.transform.rotate(img, rotate[0])
     x_dist = (img.get_rect().width - 16)/2
     y_dist = (img.get_rect().height - 16)/2
-    surface.blit(img, (place[0] - x_dist, place[1] - y_dist))
+    game_surface.blit(img, (place[0] - x_dist, place[1] - y_dist))
 
 def work():
     #print(textpos.centerx - surface.get_rect().centerx)
-    if textpos.centerx - surface.get_rect().centerx < -80 : move[0] = False
-    if textpos.centerx - surface.get_rect().centerx > 80 : move[1] = False
-    if move[0]: textpos.centerx -= move_step
-    if move[1]: textpos.centerx += move_step
-    if move[2]: textpos.y -= move_step
-    if move[3]: textpos.y += move_step
-    rotate[0] += 15
-    if rotate[0] > 360: rotate[0] = 0
+    if move[0]: 
+        player.rect.left -= move_step
+    if move[1]:
+        player.rect.left += move_step
+    if player.rect.left <= player_surface_rect.left:
+        player.rect.left = player_surface_rect.left
+    if player.rect.right >= player_surface_rect.right:
+        player.rect.left = player_surface_rect.right - player.rect.width
+    #if move[2]: textpos.y -= move_step
+    #if move[3]: textpos.y += move_step
+    #rotate[0] += 15
+    #if rotate[0] > 360: rotate[0] = 0
 
 def display():
-    surface.fill(pygame.Color(0,0,0))
-    draw_sky(Star)
-    for brick in Bricks:
-        surface.blit(brick[0], brick[1])
-    screen.blit(surface,(5,0))
-    bottom_surface.fill(pygame.Color(180,180,180))
-    screen.blit(bottom_surface, (0, 350))
+    game_surface.fill(pygame.Color(0,0,0))
+    player_surface.fill(pygame.Color(0,0,0,0))
+    Bricks.draw(game_surface)
+    player_group.draw(player_surface)
+    score_surface.fill(pygame.Color(180,180,180))
+    show_score()
+    screen.blits(
+        (
+            (game_surface, game_surface_rect),
+            (player_surface, player_surface_rect),
+            (score_surface, score_surface_rect)
+        )
+    )
 
 Bricks = make_bricks()
-Star = make_a_star(32)
 pygame.time.set_timer(USEREVENT + 1, 18)
 event = pygame.event.wait()
 while event:
