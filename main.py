@@ -39,9 +39,7 @@ player.image.fill(pygame.Color(200,175,150))
 player_group = pygame.sprite.Group()
 player_group.add(player)
 
-ball = pygame.sprite.Sprite()
-ball.image = pygame.Surface((15,15))
-ball.rect = player.image.get_rect()
+star_group = pygame.sprite.Group()
 
 def make_bricks(rows = 5):
     bricks = pygame.sprite.Group()
@@ -67,14 +65,16 @@ def show_score():
     score_surface.blit(text, textpos)
 
 def make_a_star(size):
-    star = pygame.Surface((size, size))
-    star.fill(pygame.Color(255,255,255))
+    star = pygame.sprite.Sprite()
+    star.image = pygame.Surface((size, size))
+    star.image.fill(pygame.Color(255,255,255))
+    star.rect = ((0,0),(15,15))
     back_color = pygame.Color(0,0,0)
-    pygame.draw.circle(star, back_color,(0,0),int(size/2),0)
-    pygame.draw.circle(star, back_color,(0, size),int(size/2),0)
-    pygame.draw.circle(star, back_color,(size,0),int(size/2),0)
-    pygame.draw.circle(star, back_color,(size, size),int(size/2),0)
-    star.set_colorkey(back_color)
+    pygame.draw.circle(star.image, back_color,(0,0),int(size/2),0)
+    pygame.draw.circle(star.image, back_color,(0, size),int(size/2),0)
+    pygame.draw.circle(star.image, back_color,(size,0),int(size/2),0)
+    pygame.draw.circle(star.image, back_color,(size, size),int(size/2),0)
+    star.image.set_colorkey(back_color)
     return star
 
 def press_key(key):
@@ -102,11 +102,11 @@ def process_user_event(code):
     if code == 'player.up': player_up()
 
 def star_animation(star, place):
-    img = pygame.transform.scale(star, (16,16))
+    img = pygame.transform.scale(star.image, (16,16))
     img = pygame.transform.rotate(img, rotate[0])
     x_dist = (img.get_rect().width - 16)/2
     y_dist = (img.get_rect().height - 16)/2
-    game_surface.blit(img, (place[0] - x_dist, place[1] - y_dist))
+    place.blit(img, (star.rect[0][0] - x_dist, star.rect[0][1] - y_dist))
 
 def work():
     #print(textpos.centerx - surface.get_rect().centerx)
@@ -120,13 +120,15 @@ def work():
         player.rect.left = player_surface_rect.right - player.rect.width
     #if move[2]: textpos.y -= move_step
     #if move[3]: textpos.y += move_step
-    #rotate[0] += 15
+    #rotate[0] += 25
     #if rotate[0] > 360: rotate[0] = 0
 
 def display():
     game_surface.fill(pygame.Color(0,0,0))
     player_surface.fill(pygame.Color(0,0,0,0))
     Bricks.draw(game_surface)
+    star_group.draw(player_surface)
+    #star_animation(star, game_surface)
     player_group.draw(player_surface)
     score_surface.fill(pygame.Color(180,180,180))
     show_score()
@@ -138,6 +140,9 @@ def display():
         )
     )
 
+star = make_a_star(7)
+star_rect = star.image.get_rect()
+star_group.add(star)
 Bricks = make_bricks()
 pygame.time.set_timer(USEREVENT + 1, 18)
 event = pygame.event.wait()
