@@ -1,6 +1,7 @@
 import os.path
 import random
 import pygame
+import math
 from pygame.locals import *
 
 pygame.init()
@@ -41,6 +42,14 @@ player_group.add(player)
 
 star_group = pygame.sprite.Group()
 
+def rad(angle):
+    return angle * (math.pi / 180)
+
+def moveX(angle):
+    return math.cos(rad(angle))
+def moveY(angle):
+    return math.sin(rad(angle))
+
 def make_bricks(rows = 5):
     bricks = pygame.sprite.Group()
     for row in range(rows):
@@ -68,7 +77,7 @@ def make_a_star(size):
     star = pygame.sprite.Sprite()
     star.image = pygame.Surface((size, size))
     star.image.fill(pygame.Color(255,255,255))
-    star.rect = ((0,0),(15,15))
+    star.rect = ([100,100],(15,15))
     back_color = pygame.Color(0,0,0)
     pygame.draw.circle(star.image, back_color,(0,0),int(size/2),0)
     pygame.draw.circle(star.image, back_color,(0, size),int(size/2),0)
@@ -118,6 +127,9 @@ def work():
         player.rect.left = player_surface_rect.left
     if player.rect.right >= player_surface_rect.right:
         player.rect.left = player_surface_rect.right - player.rect.width
+
+    star_rect[0][0] += moveX(125)
+    star_rect[0][1] -= moveY(125)
     #if move[2]: textpos.y -= move_step
     #if move[3]: textpos.y += move_step
     #rotate[0] += 25
@@ -127,7 +139,7 @@ def display():
     game_surface.fill(pygame.Color(0,0,0))
     player_surface.fill(pygame.Color(0,0,0,0))
     Bricks.draw(game_surface)
-    star_group.draw(player_surface)
+    star_group.draw(game_surface)
     #star_animation(star, game_surface)
     player_group.draw(player_surface)
     score_surface.fill(pygame.Color(180,180,180))
@@ -141,7 +153,7 @@ def display():
     )
 
 star = make_a_star(7)
-star_rect = star.image.get_rect()
+star_rect = star.rect
 star_group.add(star)
 Bricks = make_bricks()
 pygame.time.set_timer(USEREVENT + 1, 18)
