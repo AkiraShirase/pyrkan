@@ -7,41 +7,6 @@ from pygame.locals import *
 pygame.init()
 pygame.font.init()
 
-move = [False, False, False, False]
-rotate = [100]
-
-score = 0
-
-screen = pygame.display.set_mode((600, 400))
-pygame.display.set_caption("PYRKAN")
-
-move_step = 8
-
-game_surface = pygame.Surface((590,380))
-game_surface_rect = game_surface.get_rect()
-game_surface_rect.top = 20
-game_surface_rect.left = 5
-score_surface = pygame.Surface((600, 20))
-score_surface_rect = game_surface.get_rect()
-score_surface_rect.top = 0
-score_surface_rect.left = 0
-player_surface = pygame.Surface((590, 20))
-player_surface_rect = player_surface.get_rect()
-player_surface_rect.top = 360
-player_surface_rect.left = 5
-player_up_event = pygame.event.Event(pygame.USEREVENT,{'code': 'player.up'})
-
-font = pygame.font.Font(None, 12)
-
-player = pygame.sprite.Sprite()
-player.image = pygame.Surface((48, 12))
-player.rect = pygame.Rect((player_surface_rect.width / 2) - 24, 0, 48, 12)
-player.image.fill(pygame.Color(200,175,150))
-player_group = pygame.sprite.Group()
-player_group.add(player)
-
-star_group = pygame.sprite.Group()
-
 def rad(angle):
     return angle * (math.pi / 180)
 
@@ -57,7 +22,7 @@ def make_bricks(rows = 5):
             brick = pygame.sprite.Sprite()
             brick.image = pygame.Surface((21,9))
             brick.image.fill(pygame.Color(random.randrange(255),random.randrange(255),random.randrange(255)))
-            brick.rect = pygame.Rect(((4 * col) + col * 21, 13 + row * 9), (21,9))
+            brick.rect = pygame.Rect(((4 * col) + col * 21, 13 + row * 11), (21,9))
             bricks.add(brick)
     return bricks
 
@@ -68,6 +33,20 @@ def draw_sky(star):
 
 def show_score():
     text = font.render('SCORE: {0}'.format(score), 1, (100,255,100))
+    textpos = text.get_rect()
+    textpos.top = 5
+    textpos.left = 15
+    score_surface.blit(text, textpos)
+def show_debug_info():
+    text = font.render(
+        'X: {0} Y: {1} A: {2}'.format(
+            star_rect[0][0], 
+            star_rect[0][1],
+            rotate[0]
+            ), 
+        1, 
+        (255,100,100)
+        )
     textpos = text.get_rect()
     textpos.top = 5
     textpos.left = 15
@@ -128,8 +107,20 @@ def work():
     if player.rect.right >= player_surface_rect.right:
         player.rect.left = player_surface_rect.right - player.rect.width
 
-    star_rect[0][0] += moveX(125)
-    star_rect[0][1] -= moveY(125)
+    star_rect[0][0] += b_move[0]
+    star_rect[0][1] -= b_move[1]
+    if star_rect[0][0] < 0: 
+        star_rect[0][0] = 0
+        b_move[0] = -b_move[0]
+    if star_rect[0][0] > 580: 
+        star_rect[0][0] = 580
+        b_move[0] = -b_move[0]
+    if star_rect[0][1] < 0: 
+        star_rect[0][1] = 0
+        b_move[1] = -b_move[1]
+    if star_rect[0][1] > 360: 
+        star_rect[0][1] = 360
+        b_move[1] = -b_move[1]
     #if move[2]: textpos.y -= move_step
     #if move[3]: textpos.y += move_step
     #rotate[0] += 25
@@ -151,6 +142,42 @@ def display():
             (score_surface, score_surface_rect)
         )
     )
+
+move = [False, False, False, False]
+rotate = [30]
+b_move = [moveX(rotate[0]), moveY(rotate[0])]
+
+score = 0
+
+screen = pygame.display.set_mode((600, 400))
+pygame.display.set_caption("PYRKAN")
+
+move_step = 8
+
+game_surface = pygame.Surface((590,380))
+game_surface_rect = game_surface.get_rect()
+game_surface_rect.top = 20
+game_surface_rect.left = 5
+score_surface = pygame.Surface((600, 20))
+score_surface_rect = game_surface.get_rect()
+score_surface_rect.top = 0
+score_surface_rect.left = 0
+player_surface = pygame.Surface((590, 20))
+player_surface_rect = player_surface.get_rect()
+player_surface_rect.top = 360
+player_surface_rect.left = 5
+player_up_event = pygame.event.Event(pygame.USEREVENT,{'code': 'player.up'})
+
+font = pygame.font.Font(None, 12)
+
+player = pygame.sprite.Sprite()
+player.image = pygame.Surface((48, 12))
+player.rect = pygame.Rect((player_surface_rect.width / 2) - 24, 0, 48, 12)
+player.image.fill(pygame.Color(200,175,150))
+player_group = pygame.sprite.Group()
+player_group.add(player)
+
+star_group = pygame.sprite.Group()
 
 star = make_a_star(7)
 star_rect = star.rect
